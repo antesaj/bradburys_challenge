@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Connections</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #242424;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666;
+            --accent-story: #e76f51;
+            --accent-essay: #2a9d8f;
+            --accent-poem: #9b5de5;
+            --border-color: #333;
+            --link-default: #444;
+            --link-hover: #666;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Filters */
+        .filters {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+        }
+
+        .filter-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--bg-tertiary);
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+        }
+
+        .filter-btn .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .filter-btn.story .dot { background: var(--accent-story); }
+        .filter-btn.essay .dot { background: var(--accent-essay); }
+        .filter-btn.poem .dot { background: var(--accent-poem); }
+
+        /* Link type filters */
+        .link-filter {
+            padding: 5px 10px;
+            font-size: 0.75rem;
+        }
+
+        .link-filter.active {
+            background: var(--bg-tertiary);
+        }
+
+        /* Stats */
+        .stats {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 24px;
+        }
+
+        .stat {
+            text-align: left;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Detail Panel */
+        .detail-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .detail-empty {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .detail-empty svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .detail-content {
+            display: none;
+        }
+
+        .detail-content.visible {
+            display: block;
+        }
+
+        .detail-category {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+
+        .detail-category.story { background: var(--accent-story); color: white; }
+        .detail-category.essay { background: var(--accent-essay); color: white; }
+        .detail-category.poem { background: var(--accent-poem); color: white; }
+
+        .detail-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .detail-author {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .detail-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .detail-section p {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .detail-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .detail-tag {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            color: var(--text-secondary);
+        }
+
+        .detail-link {
+            display: inline-block;
+            margin-top: 16px;
+            color: var(--accent-essay);
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+
+        .detail-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Graph Area */
+        .graph-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #graph {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Nodes */
+        .node {
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .node circle {
+            stroke: var(--bg-primary);
+            stroke-width: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .node.story circle { fill: var(--accent-story); }
+        .node.essay circle { fill: var(--accent-essay); }
+        .node.poem circle { fill: var(--accent-poem); }
+
+        .node:hover circle {
+            stroke-width: 4px;
+            stroke: rgba(255,255,255,0.3);
+        }
+
+        .node.selected circle {
+            stroke-width: 4px;
+            stroke: rgba(255,255,255,0.5);
+        }
+
+        .node.dimmed {
+            opacity: 0.15;
+        }
+
+        .node-label {
+            font-size: 10px;
+            fill: var(--text-secondary);
+            pointer-events: none;
+            text-anchor: middle;
+        }
+
+        /* Links */
+        .link {
+            stroke: var(--link-default);
+            stroke-opacity: 0.6;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .link.dimmed {
+            stroke-opacity: 0.05;
+        }
+
+        .link.highlighted {
+            stroke-opacity: 1;
+        }
+
+        .link.theme { stroke: #f4a261; }
+        .link.genre { stroke: #457b9d; }
+        .link.author { stroke: #e9c46a; }
+        .link.time_period { stroke: #8d99ae; }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            max-width: 280px;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tooltip-author {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        /* Legend */
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        .legend-title {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .legend-line {
+            width: 20px;
+            height: 2px;
+        }
+
+        .legend-line.theme { background: #f4a261; }
+        .legend-line.genre { background: #457b9d; }
+        .legend-line.author { background: #e9c46a; }
+        .legend-line.time_period { background: #8d99ae; }
+
+        /* Zoom controls */
+        .zoom-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .zoom-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .zoom-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 280px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+            }
+            .detail-panel {
+                max-height: 30vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Reading Connections</h1>
+                <p>A visual map of stories, essays, and poems</p>
+            </div>
+
+            <div class="filters">
+                <div class="filter-section">
+                    <div class="filter-label">Content Type</div>
+                    <div class="filter-buttons" id="type-filters">
+                        <button class="filter-btn story active" data-type="story">
+                            <span class="dot"></span>Stories
+                        </button>
+                        <button class="filter-btn essay active" data-type="essay">
+                            <span class="dot"></span>Essays
+                        </button>
+                        <button class="filter-btn poem active" data-type="poem">
+                            <span class="dot"></span>Poems
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-label">Connection Type</div>
+                    <div class="filter-buttons" id="link-filters">
+                        <button class="filter-btn link-filter active" data-link="theme">Theme</button>
+                        <button class="filter-btn link-filter active" data-link="genre">Genre</button>
+                        <button class="filter-btn link-filter active" data-link="author">Author</button>
+                        <button class="filter-btn link-filter active" data-link="time_period">Era</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="stat-nodes">0</div>
+                    <div class="stat-label">Items</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="stat-edges">0</div>
+                    <div class="stat-label">Connections</div>
+                </div>
+            </div>
+
+            <div class="detail-panel">
+                <div class="detail-empty" id="detail-empty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 16v-4M12 8h.01"></path>
+                    </svg>
+                    <p>Click on a node to see details about the work</p>
+                </div>
+                <div class="detail-content" id="detail-content">
+                    <span class="detail-category" id="detail-category"></span>
+                    <h2 class="detail-title" id="detail-title"></h2>
+                    <div class="detail-author" id="detail-author"></div>
+                    <div class="detail-date" id="detail-date"></div>
+
+                    <div class="detail-section">
+                        <div class="detail-section-title">Summary</div>
+                        <p id="detail-summary"></p>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-section-title">Mood</div>
+                        <p id="detail-mood"></p>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-section-title">Setting</div>
+                        <p id="detail-setting"></p>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-section-title">Themes</div>
+                        <div class="detail-tags" id="detail-themes"></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-section-title">Genres</div>
+                        <div class="detail-tags" id="detail-genres"></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-section-title">Keywords</div>
+                        <div class="detail-tags" id="detail-keywords"></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-section-title">About the Author</div>
+                        <p id="detail-author-info"></p>
+                    </div>
+
+                    <a href="#" class="detail-link" id="detail-url" target="_blank" style="display:none;">Read this work</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="graph-container">
+            <svg id="graph"></svg>
+
+            <div class="tooltip" id="tooltip">
+                <div class="tooltip-title" id="tooltip-title"></div>
+                <div class="tooltip-author" id="tooltip-author"></div>
+            </div>
+
+            <div class="zoom-controls">
+                <button class="zoom-btn" id="zoom-in">+</button>
+                <button class="zoom-btn" id="zoom-out">-</button>
+                <button class="zoom-btn" id="zoom-reset">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                        <path d="M3 3v5h5"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="legend">
+                <div class="legend-title">Connection Types</div>
+                <div class="legend-item">
+                    <div class="legend-line theme"></div>
+                    <span>Shared Theme</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line genre"></div>
+                    <span>Shared Genre</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line author"></div>
+                    <span>Same Author</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line time_period"></div>
+                    <span>Same Era</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // State
+        let graphData = { nodes: {}, edges: [] };
+        let selectedNode = null;
+        let activeTypes = new Set(['story', 'essay', 'poem']);
+        let activeLinkTypes = new Set(['theme', 'genre', 'author', 'time_period']);
+
+        // D3 elements
+        let svg, g, simulation, link, node, zoom;
+
+        // Initialize
+        async function init() {
+            try {
+                const response = await fetch('reading_graph.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                graphData = await response.json();
+                console.log('Loaded data:', Object.keys(graphData.nodes).length, 'nodes,', graphData.edges.length, 'edges');
+                setupGraph();
+                setupFilters();
+                updateStats();
+            } catch (error) {
+                console.error('Failed to load graph data:', error);
+                document.getElementById('stat-nodes').textContent = 'Error';
+                document.getElementById('detail-empty').innerHTML = `
+                    <p style="color: #e76f51;">Failed to load data</p>
+                    <p style="font-size: 0.75rem; margin-top: 8px;">${error.message}</p>
+                    <p style="font-size: 0.7rem; margin-top: 12px; color: #666;">Make sure reading_graph.json exists and you're serving via HTTP (not file://)</p>
+                `;
+            }
+        }
+
+        function setupGraph() {
+            const container = document.querySelector('.graph-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            svg = d3.select('#graph')
+                .attr('width', width)
+                .attr('height', height);
+
+            // Zoom behavior
+            zoom = d3.zoom()
+                .scaleExtent([0.2, 4])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+
+            svg.call(zoom);
+
+            g = svg.append('g');
+
+            // Convert nodes object to array
+            const nodes = Object.values(graphData.nodes);
+
+            // Aggregate edges between same node pairs
+            const edgeMap = new Map();
+            graphData.edges.forEach(e => {
+                const key = [e.source, e.target].sort().join('|');
+                if (!edgeMap.has(key)) {
+                    edgeMap.set(key, {
+                        source: e.source,
+                        target: e.target,
+                        linkTypes: new Set(),
+                        sharedCount: 0,
+                        allShared: []
+                    });
+                }
+                const agg = edgeMap.get(key);
+                agg.linkTypes.add(e.link_type);
+                agg.sharedCount += (e.shared ? e.shared.length : 1);
+                agg.allShared.push(...(e.shared || []));
+            });
+
+            // Convert to array with weight
+            const aggregatedEdges = Array.from(edgeMap.values()).map(e => ({
+                ...e,
+                linkTypes: Array.from(e.linkTypes),
+                weight: e.sharedCount
+            }));
+
+            // Store for filtering
+            graphData.aggregatedEdges = aggregatedEdges;
+
+            // Create simulation
+            simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(aggregatedEdges)
+                    .id(d => d.id)
+                    .distance(120))
+                .force('charge', d3.forceManyBody()
+                    .strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(30));
+
+            // Scale for edge thickness (1-6px based on weight)
+            const maxWeight = d3.max(aggregatedEdges, d => d.weight) || 1;
+            const strokeScale = d3.scaleLinear()
+                .domain([1, maxWeight])
+                .range([1.5, 6]);
+
+            // Draw links
+            link = g.append('g')
+                .attr('class', 'links')
+                .selectAll('line')
+                .data(aggregatedEdges)
+                .enter()
+                .append('line')
+                .attr('class', d => `link ${d.linkTypes[0]}`)
+                .attr('stroke-width', d => strokeScale(d.weight))
+                .attr('data-weight', d => d.weight)
+                .on('mouseenter', handleLinkHover)
+                .on('mouseleave', handleLinkLeave);
+
+            // Draw nodes
+            node = g.append('g')
+                .attr('class', 'nodes')
+                .selectAll('g')
+                .data(nodes)
+                .enter()
+                .append('g')
+                .attr('class', d => `node ${d.category}`)
+                .call(d3.drag()
+                    .on('start', dragStarted)
+                    .on('drag', dragged)
+                    .on('end', dragEnded))
+                .on('click', handleNodeClick)
+                .on('mouseenter', handleNodeHover)
+                .on('mouseleave', handleNodeLeave);
+
+            node.append('circle')
+                .attr('r', 12);
+
+            node.append('text')
+                .attr('class', 'node-label')
+                .attr('dy', 25)
+                .text(d => truncate(d.title, 20));
+
+            // Update positions
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+
+            // Zoom controls
+            document.getElementById('zoom-in').addEventListener('click', () => {
+                svg.transition().call(zoom.scaleBy, 1.3);
+            });
+
+            document.getElementById('zoom-out').addEventListener('click', () => {
+                svg.transition().call(zoom.scaleBy, 0.7);
+            });
+
+            document.getElementById('zoom-reset').addEventListener('click', () => {
+                svg.transition().call(zoom.transform, d3.zoomIdentity);
+            });
+
+            // Handle resize
+            window.addEventListener('resize', () => {
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+                svg.attr('width', newWidth).attr('height', newHeight);
+                simulation.force('center', d3.forceCenter(newWidth / 2, newHeight / 2));
+                simulation.alpha(0.3).restart();
+            });
+
+            // Click outside to deselect
+            svg.on('click', () => {
+                selectedNode = null;
+                node.classed('selected', false);
+            });
+        }
+
+        function setupFilters() {
+            // Type filters
+            document.querySelectorAll('#type-filters .filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.dataset.type;
+                    btn.classList.toggle('active');
+
+                    if (activeTypes.has(type)) {
+                        activeTypes.delete(type);
+                    } else {
+                        activeTypes.add(type);
+                    }
+
+                    applyFilters();
+                });
+            });
+
+            // Link type filters
+            document.querySelectorAll('#link-filters .filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const linkType = btn.dataset.link;
+                    btn.classList.toggle('active');
+
+                    if (activeLinkTypes.has(linkType)) {
+                        activeLinkTypes.delete(linkType);
+                    } else {
+                        activeLinkTypes.add(linkType);
+                    }
+
+                    applyFilters();
+                });
+            });
+        }
+
+        function applyFilters() {
+            // Filter nodes
+            node.classed('dimmed', d => !activeTypes.has(d.category));
+
+            // Filter links (check if any linkType matches active filters)
+            link.classed('dimmed', d => {
+                const sourceVisible = activeTypes.has(d.source.category);
+                const targetVisible = activeTypes.has(d.target.category);
+                const hasVisibleLinkType = d.linkTypes.some(lt => activeLinkTypes.has(lt));
+                return !sourceVisible || !targetVisible || !hasVisibleLinkType;
+            });
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const nodes = Object.values(graphData.nodes);
+            const visibleNodes = nodes.filter(n => activeTypes.has(n.category));
+
+            // Count visible aggregated edges
+            const visibleEdges = (graphData.aggregatedEdges || []).filter(e => {
+                const sourceId = typeof e.source === 'object' ? e.source.id : e.source;
+                const targetId = typeof e.target === 'object' ? e.target.id : e.target;
+                const source = graphData.nodes[sourceId];
+                const target = graphData.nodes[targetId];
+                if (!source || !target) return false;
+                const hasVisibleLinkType = e.linkTypes.some(lt => activeLinkTypes.has(lt));
+                return activeTypes.has(source.category) &&
+                       activeTypes.has(target.category) &&
+                       hasVisibleLinkType;
+            });
+
+            document.getElementById('stat-nodes').textContent = visibleNodes.length;
+            document.getElementById('stat-edges').textContent = visibleEdges.length;
+        }
+
+        function handleNodeClick(event, d) {
+            event.stopPropagation();
+
+            // Update selection state
+            node.classed('selected', n => n.id === d.id);
+            selectedNode = d;
+
+            // Highlight connected nodes and links
+            const connectedIds = new Set([d.id]);
+            graphData.edges.forEach(e => {
+                const sourceId = typeof e.source === 'object' ? e.source.id : e.source;
+                const targetId = typeof e.target === 'object' ? e.target.id : e.target;
+                if (sourceId === d.id) connectedIds.add(targetId);
+                if (targetId === d.id) connectedIds.add(sourceId);
+            });
+
+            // Show detail panel
+            showDetail(d);
+        }
+
+        function handleNodeHover(event, d) {
+            const tooltip = document.getElementById('tooltip');
+            const tooltipTitle = document.getElementById('tooltip-title');
+            const tooltipAuthor = document.getElementById('tooltip-author');
+
+            tooltipTitle.textContent = d.title;
+            tooltipAuthor.textContent = d.author;
+
+            tooltip.classList.add('visible');
+            tooltip.style.left = (event.pageX + 15) + 'px';
+            tooltip.style.top = (event.pageY - 10) + 'px';
+
+            // Highlight connections
+            const connectedIds = new Set([d.id]);
+            link.each(function(e) {
+                const sourceId = typeof e.source === 'object' ? e.source.id : e.source;
+                const targetId = typeof e.target === 'object' ? e.target.id : e.target;
+                if (sourceId === d.id || targetId === d.id) {
+                    connectedIds.add(sourceId);
+                    connectedIds.add(targetId);
+                    d3.select(this).classed('highlighted', true);
+                }
+            });
+
+            node.classed('dimmed', n => !connectedIds.has(n.id) && activeTypes.has(n.category));
+        }
+
+        function handleNodeLeave() {
+            document.getElementById('tooltip').classList.remove('visible');
+            link.classed('highlighted', false);
+            applyFilters(); // Reapply filters to reset dimming
+        }
+
+        function handleLinkHover(event, d) {
+            const tooltip = document.getElementById('tooltip');
+            const tooltipTitle = document.getElementById('tooltip-title');
+            const tooltipAuthor = document.getElementById('tooltip-author');
+
+            const sourceNode = graphData.nodes[d.source.id || d.source];
+            const targetNode = graphData.nodes[d.target.id || d.target];
+
+            tooltipTitle.textContent = `${d.weight} shared attribute${d.weight > 1 ? 's' : ''}`;
+            tooltipAuthor.textContent = `${sourceNode?.title || 'Unknown'} ↔ ${targetNode?.title || 'Unknown'}`;
+
+            tooltip.classList.add('visible');
+            tooltip.style.left = (event.pageX + 15) + 'px';
+            tooltip.style.top = (event.pageY - 10) + 'px';
+
+            d3.select(event.target).classed('highlighted', true);
+        }
+
+        function handleLinkLeave(event) {
+            document.getElementById('tooltip').classList.remove('visible');
+            d3.select(event.target).classed('highlighted', false);
+        }
+
+        function showDetail(d) {
+            document.getElementById('detail-empty').style.display = 'none';
+            const content = document.getElementById('detail-content');
+            content.classList.add('visible');
+
+            // Category badge
+            const category = document.getElementById('detail-category');
+            category.textContent = d.category;
+            category.className = `detail-category ${d.category}`;
+
+            // Basic info
+            document.getElementById('detail-title').textContent = d.title;
+            document.getElementById('detail-author').textContent = d.author;
+            document.getElementById('detail-date').textContent = `Read: ${d.date}`;
+
+            // Content sections
+            document.getElementById('detail-summary').textContent = d.summary || 'No summary available';
+            document.getElementById('detail-mood').textContent = d.mood || 'Not specified';
+            document.getElementById('detail-setting').textContent = d.setting || 'Not specified';
+
+            // Tags
+            renderTags('detail-themes', d.themes);
+            renderTags('detail-genres', d.genres);
+            renderTags('detail-keywords', d.keywords);
+
+            // Author info
+            document.getElementById('detail-author-info').textContent = d.author_info || 'No author information available';
+
+            // URL link
+            const urlLink = document.getElementById('detail-url');
+            if (d.url) {
+                urlLink.href = d.url;
+                urlLink.style.display = 'inline-block';
+            } else {
+                urlLink.style.display = 'none';
+            }
+        }
+
+        function renderTags(elementId, tags) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = '';
+
+            if (tags && tags.length > 0) {
+                tags.forEach(tag => {
+                    const span = document.createElement('span');
+                    span.className = 'detail-tag';
+                    span.textContent = tag;
+                    container.appendChild(span);
+                });
+            } else {
+                container.innerHTML = '<span class="detail-tag">None</span>';
+            }
+        }
+
+        // Drag handlers
+        function dragStarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragEnded(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // Utility
+        function truncate(str, length) {
+            if (!str) return '';
+            return str.length > length ? str.slice(0, length) + '...' : str;
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
