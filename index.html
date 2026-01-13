@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bradbury's Challenge - Andrew Antes</title>
+    <title>Reading Connections</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         :root {
@@ -455,13 +455,103 @@
             .container {
                 flex-direction: column;
             }
+
             .sidebar {
                 width: 100%;
                 height: auto;
-                max-height: 40vh;
+                max-height: none;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
             }
+
+            .sidebar-header {
+                padding: 16px;
+            }
+
+            .sidebar-header h1 {
+                font-size: 1.1rem;
+            }
+
+            .filters {
+                padding: 12px 16px;
+            }
+
+            .stats {
+                padding: 12px 16px;
+            }
+
+            /* Hide detail panel in sidebar on mobile */
             .detail-panel {
-                max-height: 30vh;
+                display: none;
+            }
+
+            /* Mobile detail overlay */
+            .mobile-detail-overlay {
+                display: none;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                max-height: 70vh;
+                background: var(--bg-secondary);
+                border-top: 1px solid var(--border-color);
+                border-radius: 16px 16px 0 0;
+                z-index: 200;
+                overflow-y: auto;
+                padding: 20px;
+                padding-bottom: 40px;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+                transform: translateY(100%);
+                transition: transform 0.3s ease;
+            }
+
+            .mobile-detail-overlay.visible {
+                display: block;
+                transform: translateY(0);
+            }
+
+            .mobile-detail-close {
+                position: absolute;
+                top: 12px;
+                right: 16px;
+                background: var(--bg-tertiary);
+                border: none;
+                color: var(--text-secondary);
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                font-size: 1.2rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-detail-handle {
+                width: 40px;
+                height: 4px;
+                background: var(--border-color);
+                border-radius: 2px;
+                margin: 0 auto 16px;
+            }
+
+            .graph-container {
+                flex: 1;
+                min-height: 50vh;
+            }
+
+            .legend {
+                display: none;
+            }
+
+            .zoom-controls {
+                top: 10px;
+                right: 10px;
+            }
+
+            .zoom-btn {
+                width: 32px;
+                height: 32px;
             }
         }
     </style>
@@ -470,9 +560,8 @@
     <div class="container">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h1>Bradbury's Challenge</h1>
-                <h2>By Andrew Antes</h2>
-                <p>A Visual Map of the stories, essays, and poems I've read</p>
+                <h1>Reading Connections</h1>
+                <p>A visual map of stories, essays, and poems</p>
             </div>
 
             <div class="filters">
@@ -608,6 +697,53 @@
         </main>
     </div>
 
+    <!-- Mobile detail overlay -->
+    <div class="mobile-detail-overlay" id="mobile-detail">
+        <div class="mobile-detail-handle"></div>
+        <button class="mobile-detail-close" id="mobile-close">&times;</button>
+        <span class="detail-category" id="mobile-category"></span>
+        <h2 class="detail-title" id="mobile-title"></h2>
+        <div class="detail-author" id="mobile-author"></div>
+        <div class="detail-date" id="mobile-date"></div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Summary</div>
+            <p id="mobile-summary"></p>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Mood</div>
+            <p id="mobile-mood"></p>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Setting</div>
+            <p id="mobile-setting"></p>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Themes</div>
+            <div class="detail-tags" id="mobile-themes"></div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Genres</div>
+            <div class="detail-tags" id="mobile-genres"></div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Keywords</div>
+            <div class="detail-tags" id="mobile-keywords"></div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">About the Author</div>
+            <p id="mobile-author-info"></p>
+        </div>
+
+        <a href="#" class="detail-link" id="mobile-url" target="_blank" style="display:none;">Read this work</a>
+    </div>
+
     <script>
         // State
         let graphData = { nodes: {}, edges: [] };
@@ -629,6 +765,7 @@
                 console.log('Loaded data:', Object.keys(graphData.nodes).length, 'nodes,', graphData.edges.length, 'edges');
                 setupGraph();
                 setupFilters();
+                setupMobileHandlers();
                 updateStats();
             } catch (error) {
                 console.error('Failed to load graph data:', error);
@@ -932,7 +1069,12 @@
             d3.select(event.target).classed('highlighted', false);
         }
 
+        function isMobile() {
+            return window.innerWidth <= 700;
+        }
+
         function showDetail(d) {
+            // Desktop panel
             document.getElementById('detail-empty').style.display = 'none';
             const content = document.getElementById('detail-content');
             content.classList.add('visible');
@@ -968,6 +1110,62 @@
             } else {
                 urlLink.style.display = 'none';
             }
+
+            // Mobile overlay
+            if (isMobile()) {
+                const mobileOverlay = document.getElementById('mobile-detail');
+
+                // Category badge
+                const mobileCategory = document.getElementById('mobile-category');
+                mobileCategory.textContent = d.category;
+                mobileCategory.className = `detail-category ${d.category}`;
+
+                // Basic info
+                document.getElementById('mobile-title').textContent = d.title;
+                document.getElementById('mobile-author').textContent = d.author;
+                document.getElementById('mobile-date').textContent = `Read: ${d.date}`;
+
+                // Content sections
+                document.getElementById('mobile-summary').textContent = d.summary || 'No summary available';
+                document.getElementById('mobile-mood').textContent = d.mood || 'Not specified';
+                document.getElementById('mobile-setting').textContent = d.setting || 'Not specified';
+
+                // Tags
+                renderTags('mobile-themes', d.themes);
+                renderTags('mobile-genres', d.genres);
+                renderTags('mobile-keywords', d.keywords);
+
+                // Author info
+                document.getElementById('mobile-author-info').textContent = d.author_info || 'No author information available';
+
+                // URL link
+                const mobileUrl = document.getElementById('mobile-url');
+                if (d.url) {
+                    mobileUrl.href = d.url;
+                    mobileUrl.style.display = 'inline-block';
+                } else {
+                    mobileUrl.style.display = 'none';
+                }
+
+                // Show overlay
+                mobileOverlay.classList.add('visible');
+            }
+        }
+
+        function closeMobileDetail() {
+            document.getElementById('mobile-detail').classList.remove('visible');
+        }
+
+        function setupMobileHandlers() {
+            // Close button
+            document.getElementById('mobile-close').addEventListener('click', closeMobileDetail);
+
+            // Close when tapping outside (on the graph)
+            document.getElementById('graph').addEventListener('click', (e) => {
+                if (isMobile() && e.target.tagName === 'svg') {
+                    closeMobileDetail();
+                }
+            });
         }
 
         function renderTags(elementId, tags) {
