@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bradbury's Challenge - Andrew Antes</title>
+    <title>Reading Connections</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         :root {
@@ -137,6 +137,58 @@
 
         .link-filter.active {
             background: var(--bg-tertiary);
+        }
+
+        /* Sensitivity slider */
+        .sensitivity-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            background: var(--text-primary);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .sensitivity-value {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .sensitivity-value span {
+            color: var(--text-primary);
+            font-weight: 600;
         }
 
         /* Stats */
@@ -560,8 +612,8 @@
     <div class="container">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h1>Bradbury's Challenge</h1>
-                <p>A visual map of stories, essays, and poems, by Andrew Antes</p>
+                <h1>Reading Connections</h1>
+                <p>A visual map of stories, essays, and poems</p>
             </div>
 
             <div class="filters">
@@ -584,9 +636,16 @@
                     <div class="filter-label">Connection Type</div>
                     <div class="filter-buttons" id="link-filters">
                         <button class="filter-btn link-filter active" data-link="theme">Theme</button>
-                        <button class="filter-btn link-filter active" data-link="genre">Genre</button>
                         <button class="filter-btn link-filter active" data-link="author">Author</button>
                         <button class="filter-btn link-filter active" data-link="time_period">Era</button>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-label">Link Sensitivity</div>
+                    <div class="sensitivity-control">
+                        <input type="range" id="sensitivity-slider" min="1" max="5" value="1" class="slider">
+                        <span class="sensitivity-value">Min <span id="sensitivity-display">1</span> shared</span>
                     </div>
                 </div>
             </div>
@@ -682,10 +741,6 @@
                     <span>Shared Theme</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-line genre"></div>
-                    <span>Shared Genre</span>
-                </div>
-                <div class="legend-item">
                     <div class="legend-line author"></div>
                     <span>Same Author</span>
                 </div>
@@ -749,7 +804,8 @@
         let graphData = { nodes: {}, edges: [] };
         let selectedNode = null;
         let activeTypes = new Set(['story', 'essay', 'poem']);
-        let activeLinkTypes = new Set(['theme', 'genre', 'author', 'time_period']);
+        let activeLinkTypes = new Set(['theme', 'author', 'time_period']);
+        let minSharedAttributes = 1;
 
         // D3 elements
         let svg, g, simulation, link, node, zoom;
@@ -766,6 +822,7 @@
                 setupGraph();
                 setupFilters();
                 setupMobileHandlers();
+                updateSensitivitySlider();
                 updateStats();
             } catch (error) {
                 console.error('Failed to load graph data:', error);
@@ -923,6 +980,13 @@
             });
         }
 
+        function updateSensitivitySlider() {
+            // Set slider max based on actual data
+            const maxWeight = Math.max(...(graphData.aggregatedEdges || []).map(e => e.weight), 1);
+            const slider = document.getElementById('sensitivity-slider');
+            slider.max = Math.min(maxWeight, 10); // Cap at 10 for usability
+        }
+
         function setupFilters() {
             // Type filters
             document.querySelectorAll('#type-filters .filter-btn').forEach(btn => {
@@ -955,18 +1019,28 @@
                     applyFilters();
                 });
             });
+
+            // Sensitivity slider
+            const slider = document.getElementById('sensitivity-slider');
+            const display = document.getElementById('sensitivity-display');
+            slider.addEventListener('input', () => {
+                minSharedAttributes = parseInt(slider.value);
+                display.textContent = minSharedAttributes;
+                applyFilters();
+            });
         }
 
         function applyFilters() {
             // Filter nodes
             node.classed('dimmed', d => !activeTypes.has(d.category));
 
-            // Filter links (check if any linkType matches active filters)
+            // Filter links (check if any linkType matches active filters AND meets sensitivity threshold)
             link.classed('dimmed', d => {
                 const sourceVisible = activeTypes.has(d.source.category);
                 const targetVisible = activeTypes.has(d.target.category);
                 const hasVisibleLinkType = d.linkTypes.some(lt => activeLinkTypes.has(lt));
-                return !sourceVisible || !targetVisible || !hasVisibleLinkType;
+                const meetsThreshold = d.weight >= minSharedAttributes;
+                return !sourceVisible || !targetVisible || !hasVisibleLinkType || !meetsThreshold;
             });
 
             updateStats();
@@ -984,9 +1058,11 @@
                 const target = graphData.nodes[targetId];
                 if (!source || !target) return false;
                 const hasVisibleLinkType = e.linkTypes.some(lt => activeLinkTypes.has(lt));
+                const meetsThreshold = e.weight >= minSharedAttributes;
                 return activeTypes.has(source.category) &&
                        activeTypes.has(target.category) &&
-                       hasVisibleLinkType;
+                       hasVisibleLinkType &&
+                       meetsThreshold;
             });
 
             document.getElementById('stat-nodes').textContent = visibleNodes.length;
