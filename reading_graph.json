@@ -924,9 +924,155 @@
         "Borges",
         "Identity"
       ]
+    },
+    "893f2e7f8ef2f2a1": {
+      "id": "893f2e7f8ef2f2a1",
+      "category": "story",
+      "title": "A Good Man is Hard to Find",
+      "author": "Flannery O'Connor",
+      "url": null,
+      "date": "January 13, 2026",
+      "notes": null,
+      "summary": "A Southern road-trip gone violent: a Georgia family traveling to Florida is ambushed by an escaped convict, the Misfit, after a roadside detour triggered by the Grandmother\u2019s vanity and nostalgia. Following a fatal crash on a rural road, the family is murdered by the Misfit\u2019s gang, and in the final moments the Grandmother experiences a rare, unsettling moment of grace as she reaches out to the killer, only to be killed herself; the story ends with the Misfit pondering the nature of goodness and meaning. The tale crystallizes O'Connor's exploration of grace, judgment, and the collision between banal self-interest and radical religious insight.",
+      "themes": [
+        "Grace as an ambivalent, momentary revelation that arrives at the brink of death",
+        "Hypocrisy and performative religiosity of the Grandmother",
+        "Violence as a catalyst that exposes truth and precipitates a possible, uneasy grace",
+        "Defining 'good' and moral worth in a world of moral ambiguity"
+      ],
+      "genres": [
+        "Horror",
+        "Satire",
+        "Modernist fiction"
+      ],
+      "mood": "Unsettling, darkly comic, and morally grave with a fatalistic undertone",
+      "time_period": "Mid-20th century United States; first published 1953 (1950s Southern Gothic context)",
+      "setting": "Road trip in the American South (Georgia to Florida), with a key memory of East Tennessee; rural roadside encounter and a fatal crash on a dirt path",
+      "notable_for": "One of O'Connor\u2019s best-known and most-anthologized stories; a compact, brutal exploration of grace, violence, and moral ambiguity in the Southern Gothic tradition",
+      "related_works": [
+        "Wise Blood",
+        "The Violent Bear It Away",
+        "Everything That Rises Must Converge",
+        "A Good Man Is Hard to Find, and Other Stories"
+      ],
+      "author_info": "Flannery O'Connor (1925\u20131964) was an American Catholic writer renowned for her tightly wound, often grotesque short stories that probe grace, judgment, and redemption within the Southern United States. She is widely regarded as a master of the Southern Gothic tradition and Christian literary fiction.",
+      "keywords": [
+        "Redeemer",
+        "Memory",
+        "Grace",
+        "Violence",
+        "Grandmother",
+        "Misfit",
+        "Southern Gothic",
+        "Epiphany",
+        "Redemption",
+        "Catholicism",
+        "Killing",
+        "Georgia to Florida road trip",
+        "Family dynamics"
+      ]
+    },
+    "11cca9e2adc9a98d": {
+      "id": "11cca9e2adc9a98d",
+      "category": "essay",
+      "title": "On Being an American",
+      "author": "H. L. Mencken",
+      "url": null,
+      "date": "January 13, 2026",
+      "notes": null,
+      "summary": "In 'On Being an American' (1922), a key piece in Mencken's Prejudices: Third Series, the author mixes affection and satire to examine American life. He proclaims the United States as 'the greatest show on earth' while wittily skewering expatriates and the boisterous, imperfect politics of his era. The essay blends a love of American vitality with a sharp critique of democratic excess, demagogues, and the language that fuels national identity, all delivered in a brisk, humorous voice that celebrates freedom of expression while lampooning pretension. (Source: Project Gutenberg, Prejudices: Third Series, 'On Being an American' (1922); Library of America excerpt.)",
+      "themes": [
+        "American exceptionalism framed as a lively national spectacle",
+        "Satire of expatriates and liberal intellectuals abroad",
+        "Democracy and demagoguery in early-20th-century American public life",
+        "Linguistic vitality and American slang as a core aspect of identity",
+        "Affectionate yet irreverent patriotism and critique of political power"
+      ],
+      "genres": [
+        "Essay (nonfiction)",
+        "Satire",
+        "Creative nonfiction"
+      ],
+      "mood": "Witty, energetic, irreverent, and affectionately critical; a buoyant mix of admiration and skepticism.",
+      "time_period": "Early 20th century (written ca. 1919\u20131922; published 1922)",
+      "setting": "United States, early 1920s; a discourse-grounded essay that references expatriates abroad and domestic political culture.",
+      "notable_for": "A definitive Menckenan synthesis of patriotism and satire, famous for privileging American energy and language while critiquing the pretensions of foreign audiences and domestic politics; a cornerstone of the Prejudices series (Third Series). The line \"The United States, to my eye, is incomparably the greatest show on earth\" epitomizes its tone. (Sources: Gutenberg text; LOA excerpt.)",
+      "related_works": [
+        "Prejudices: Third Series (1922)",
+        "The American Language (1919)",
+        "Notes on Democracy (1926)",
+        "The American Mercury (1924)"
+      ],
+      "author_info": "Henry Louis Mencken (1880\u20131956) was an American journalist, essayist, satirist, and linguistic critic whose sharp wit helped define American modernism. He co-founded The American Mercury (1924) and authored influential works on American language and culture, shaping debates about democracy, mass media, and social norms. (Sources: Library of America; Britannica.)",
+      "keywords": [
+        "On Being an American",
+        "H. L. Mencken",
+        "Prejudices: Third Series",
+        "satire",
+        "American democracy",
+        "expatriates",
+        "great show on earth",
+        "American language",
+        "demagoguery",
+        "mass culture",
+        "patriotism"
+      ]
+    },
+    "8601dc5b3335c179": {
+      "id": "8601dc5b3335c179",
+      "category": "poem",
+      "title": "El Despertar",
+      "author": "Jorge Luis Borges",
+      "url": null,
+      "date": "January 13, 2026",
+      "notes": null,
+      "summary": "El Despertar is a contemplative lyric in which the speaker emerges from dreams into a shared present, as ordinary objects and the self reassemble in a vast, waking present. It juxtaposes intimate memory with the longue dur\u00e9e of history\u2014the migrations of birds and men, and the legions that time and empire destroyed, namely Rome and Carthage\u2014before turning to a desire for oblivion: a morning in which one\u2019s name and past might be forgotten. The opening lines ground the awakening in a luminous, dreamlike transition: \u201cEntra la luz y asciendo torpemente / de los sue\u00f1os al sue\u00f1o compartido.\u201d",
+      "themes": [
+        "Memory vs forgetting and the fragility of self",
+        "Time, history, and circularity (memory as an endless loop)",
+        "Dreams vs waking reality and the metaphysical awakening",
+        "The burden and beauty of civilizational memory (Rome and Carthage) as backdrop to personal identity"
+      ],
+      "genres": [
+        "Narrative poetry",
+        "Free verse",
+        "Mythology / Folklore"
+      ],
+      "mood": "Contemplative, reverent, with a undercurrent of melancholy and awe at time, memory, and history.",
+      "time_period": "Mid-20th century (likely written in the 1940s\u20131960s; exact publication date not consistently documented)",
+      "setting": "A dreamlike interior landscape where personal memory intertwines with historical allusion; the speaker\u2019s awakening collapses private experience with the memory of ancient civilizations (Rome and Carthage).",
+      "notable_for": "A compact Borgesian meditation on memory, time, and the self that foregrounds the tension between what we remember and what we wish to forget, and that exemplifies Borges\u2019s interest in circular time and the permeability between dream and waking life.",
+      "related_works": [
+        "Las ruinas circulares (The Circular Ruins) \u2014 short story exploring circular time and the self",
+        "El Golem \u2014 poem on creation, memory, and limits of human making",
+        "Funes el memorioso (Funes the Memorious) \u2014 short story about overabundant memory and its consequences",
+        "El Sur \u2014 another Borges lyric that engages memory and place",
+        "El sue\u00f1o de Coleridge (The Dream of Coleridge) \u2014 Borges\u2019s contemplation of dream and imagination"
+      ],
+      "author_info": "Jorge Luis Borges (1899\u20131986) was an Argentine poet, essayist, and short-story writer whose work helped redefine 20th-century world literature. Renowned for metafiction, labyrinths, and meditations on memory and time, he produced lyric and prose works that blend philosophical inquiry with mythic and literary allusion.",
+      "keywords": [
+        "Borges",
+        "El Despertar",
+        "memory",
+        "time",
+        "awakening",
+        "Rome",
+        "Carthage",
+        "dream",
+        "self",
+        "circular time"
+      ]
     }
   },
   "edges": [
+    {
+      "source": "9f72741211067af8",
+      "target": "11cca9e2adc9a98d",
+      "link_type": "time_period",
+      "shared": [
+        "Early 20th century (written ca. 1919\u20131922; published 1922)"
+      ]
+    },
     {
       "source": "2acbcccd5f1c4a86",
       "target": "6ccfdadb0f8d8fe1",
@@ -962,6 +1108,22 @@
     {
       "source": "e8f8d9a1a12e0d15",
       "target": "a7ad741fc89080ad",
+      "link_type": "author",
+      "shared": [
+        "Jorge Luis Borges"
+      ]
+    },
+    {
+      "source": "e8f8d9a1a12e0d15",
+      "target": "8601dc5b3335c179",
+      "link_type": "author",
+      "shared": [
+        "Jorge Luis Borges"
+      ]
+    },
+    {
+      "source": "a7ad741fc89080ad",
+      "target": "8601dc5b3335c179",
       "link_type": "author",
       "shared": [
         "Jorge Luis Borges"
